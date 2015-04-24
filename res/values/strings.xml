@@ -1,0 +1,27 @@
+<resources>
+
+    <string name="app_name">Bell</string>
+
+    <string name="staff_login">Staff Login</string>
+
+    <string name="instruction">Tap and Hold to Call Server</string>
+
+    <string name="email">Email</string>
+
+    <string name="password">Password</string>
+    
+    <string name="login">Login</string>
+    
+    <string name="enter_credentials">Enter Credentials</string>
+    
+    <string name="guest_called">Called you <font color='%1%s'>%2%s</font> minutes ago.</string>
+        
+    <string name="table_number">Table %1%d</string>
+    
+    <string name="late_color">#00F1405B</string>
+    
+    <string name="waiting_color">#00FDC988</string>
+    
+    <string name="submitted_color">#006AC3B4</string>
+
+</resources>
