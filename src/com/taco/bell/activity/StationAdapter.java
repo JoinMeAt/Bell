@@ -1,5 +1,6 @@
 package com.taco.bell.activity;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.joda.time.DateTimeZone;
@@ -69,6 +70,10 @@ public class StationAdapter extends ArrayAdapter<Station> {
 		return stations.get(position);
 	}
 
+	public void sort() {
+		Collections.sort(stations);
+	}
+
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		ViewHolder holder = null;
@@ -98,15 +103,18 @@ public class StationAdapter extends ArrayAdapter<Station> {
 		
 		if( stations.get(position).hasServiceRequest() ) {
 			long diff =  System.currentTimeMillis() - holder.requestTimeLocal;
-			String request = TimeFormatter.simpleTimeFormatter.print(diff);
-			String color;
+			String request = TimeFormatter.SimpleTimeFormatter.print(diff);
+			String color = "#FFFFFF";
 			
 			if( diff < 60000 ) {
-				color = context.getString(R.string.submitted_color);
+//				color = context.getString(R.string.submitted_color);
+				convertView.setBackgroundColor(context.getResources().getColor(R.color.SUBMITTED));
 			} else if( diff < 120000 ) {
-				color = context.getString(R.string.waiting_color);		
+//				color = context.getString(R.string.waiting_color);		
+				convertView.setBackgroundColor(context.getResources().getColor(R.color.WAITING));
 			} else {
-				color = context.getString(R.string.late_color);				
+//				color = context.getString(R.string.late_color);				
+				convertView.setBackgroundColor(context.getResources().getColor(R.color.LATE));
 			}
 			
 			holder.stationText.setText(context.getString(R.string.guest_called, color, request));

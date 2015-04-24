@@ -147,8 +147,9 @@ public class LoginActivity extends Activity implements OnTouchListener {
 	}
 	
 	private void login() {
-		
-		
+		RestMethod method = RestMethodFactory.Login(emailInput.getText().toString(), 
+							passwordInput.getText().toString());
+		new LoginAsyncTask().execute(method);		
 	}
 	
 	private void startAnimation() {
@@ -158,12 +159,27 @@ public class LoginActivity extends Activity implements OnTouchListener {
 	private void stopAnimation() {
 		callWaiter.clearAnimation();
 	}
+
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+	    int action = event.getAction();
+	    if (action == MotionEvent.ACTION_DOWN) {
+	    	handler.postDelayed(checkPressed, 2000);
+	        isScreenPressed = true;
+	    }
+	    else if (action == MotionEvent.ACTION_UP) {
+	    	handler.removeCallbacks(checkPressed);
+	    	isScreenPressed = false;
+	    }
+		return false;
+	}
 	
 	private class LoginAsyncTask extends AsyncTask<RestMethod, Void, String> {
 		String restCall = null;
 
 		@Override
 		protected String doInBackground(RestMethod ... params) {
+			Logger.d(tag, "Login in background");
 			restCall = params[0].getURI();
 			
 			String response = null;
@@ -187,31 +203,18 @@ public class LoginActivity extends Activity implements OnTouchListener {
 			}			
 			Constants.ME = (User) Serializer.deserialize(result, User.class);
 			
-			if( restCall.equals(RestMethodFactory.LoginURL) ) { // server login
+			if( restCall.equals(RestMethodFactory.LoginURL)
+					&& Constants.ME != null ) { // server login
 				Intent i = new Intent();
 				i.setClass(LoginActivity.this, ServerActivity.class);
 				startActivity(i);
 				LoginActivity.this.finish();
-			} else if( restCall.equals(RestMethodFactory.GuestLoginURL) ) {
+			} else if( restCall.equals(RestMethodFactory.GuestLoginURL ) ) {
 				
 			}
 		}
 		
 		
-	}
-
-	@Override
-	public boolean onTouch(View v, MotionEvent event) {
-	    int action = event.getAction();
-	    if (action == MotionEvent.ACTION_DOWN) {
-	    	handler.postDelayed(checkPressed, 2000);
-	        isScreenPressed = true;
-	    }
-	    else if (action == MotionEvent.ACTION_UP) {
-	    	handler.removeCallbacks(checkPressed);
-	    	isScreenPressed = false;
-	    }
-		return false;
 	}
 	
 	private class CallServerTask extends AsyncTask<Void, Void, String> {
@@ -244,7 +247,7 @@ public class LoginActivity extends Activity implements OnTouchListener {
 			                	
 			    				long localTime = new LocalDateTime().now().toDateTime().getMillis();
 			                	
-			                    timerText.setText(TimeFormatter.simpleTimeFormatter.print(localTime - request.getRequestTime()));
+			                    timerText.setText(TimeFormatter.SimpleTimeFormatter.print(localTime - request.getRequestTime()));
 			                }
 			            });
 			        }

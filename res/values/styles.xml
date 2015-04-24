@@ -18,8 +18,8 @@
     </style>
     <color name="BLACK">#00000000</color>
     <color name="WHITE">#00FFFFFF</color>
-    <color name="LATE">#00F1405B</color>
-    <color name="WAITING">#00FDC988</color>
-    <color name="SUBMITTED">#006AC3B4</color>
+    <color name="LATE">#80F1405B</color>
+    <color name="WAITING">#80FDC988</color>
+    <color name="SUBMITTED">#806AC3B4</color>
 
 </resources>

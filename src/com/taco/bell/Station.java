@@ -36,6 +36,10 @@ public class Station implements Comparable<Station> {
 		this.request = request;
 	}
 	
+	public void removeServiceRequest() {
+		this.request = null;
+	}
+	
 	public boolean hasServiceRequest() {
 		return this.request != null;
 	}
