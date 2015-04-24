@@ -81,9 +81,9 @@ public class GCMIntentService extends GCMBaseIntentService {
         		.getString("message");
         
         Intent broadcastIntent = new Intent();
-        broadcastIntent.setAction("gcm.received");
+        broadcastIntent.setAction(Constants.GCM_MESSAGE_RX);
          
-        broadcastIntent.putExtra("gcm.message", message);
+        broadcastIntent.putExtra(Constants.GCM_MESSAGE, message);
          
         context.sendBroadcast(broadcastIntent);
     }

@@ -14,14 +14,16 @@
     
     <string name="enter_credentials">Enter Credentials</string>
     
-    <string name="guest_called">Called you <font color='%1%s'>%2%s</font> minutes ago.</string>
+    <string name="guest_called">Called <![CDATA[<font color='%1$s'>%2$s</font>]]> minutes ago.</string>
         
-    <string name="table_number">Table %1%d</string>
+    <string name="table_number">Table %1$d</string>
     
-    <string name="late_color">#00F1405B</string>
+    <string name="late_color">#F1405B</string>
     
-    <string name="waiting_color">#00FDC988</string>
+    <string name="waiting_color">#FDC988</string>
     
-    <string name="submitted_color">#006AC3B4</string>
+    <string name="submitted_color">#6AC3B4</string>
+    
+    <string name="server_called">%1$s has been called.</string>
 
 </resources>

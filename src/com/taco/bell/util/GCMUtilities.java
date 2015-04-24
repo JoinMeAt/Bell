@@ -15,14 +15,19 @@
  */
 package com.taco.bell.util;
 
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.taco.bell.util.Logger;
 import com.taco.bell.rest.RestMethod;
 import com.taco.bell.rest.RestMethodFactory;
+
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
 public final class GCMUtilities {
 
     private static final String TAG = "GCMUtilities";
+	static GoogleCloudMessaging gcm = null;
     
     public static boolean register(final String regId) {
         Logger.d(TAG, "Calling GCMUtilities.register: gcmID = " + regId);
@@ -86,6 +91,31 @@ public final class GCMUtilities {
 			
 			return result;
 		}
-		
+	}
+	
+	public static void registerBackground(final Context context) {
+	    new AsyncTask<Void, Void, Boolean>() {
+			@Override
+	        protected Boolean doInBackground(Void... params) {
+	            try {
+	                if (GCMUtilities.gcm == null) {
+	                    gcm = GoogleCloudMessaging.getInstance(context);
+	                }
+	                Constants.GCM_ID = gcm.register(Constants.GCM_SENDER_ID);	                
+	                
+	            } catch (Exception ex) {
+	            	return false;
+	            }
+	            return true;
+	        }
+
+	        @Override
+	        protected void onPostExecute(Boolean pass) {
+	        	String msg = "Device registered, registration id=" + Constants.GCM_ID;
+	            Logger.d("gcm.onPostExecute", msg + "\n");
+
+//	            register(Constants.GCM_ID);
+	        }
+	    }.execute(null, null, null);
 	}
 }

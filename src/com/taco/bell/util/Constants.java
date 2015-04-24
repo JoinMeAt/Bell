@@ -17,5 +17,13 @@ public class Constants {
 	public static final String USER_DOMAIN = DOMAIN + "user/";
 	public static final String REQUEST_DOMAIN = DOMAIN + "request/";
 	
+	public static final String GCM_MESSAGE_RX = "com.taco.bell.gcm";
+	public static final String GCM_MESSAGE = "com.taco.bell.gcm.message";
+	public static String GCM_ID = null;
+	
+	
+	public static final long SUBMIT_TIME = 60000;
+	public static final long WAITING_TIME =180000;
+	
 	
 }

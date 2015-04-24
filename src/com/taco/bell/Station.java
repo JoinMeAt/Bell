@@ -36,8 +36,12 @@ public class Station implements Comparable<Station> {
 		this.request = request;
 	}
 	
-	public void removeServiceRequest() {
+	public long removeServiceRequest() {
+		long id = -1;
+		if( request != null )
+			id = this.request.getRequestID();
 		this.request = null;
+		return id;
 	}
 	
 	public boolean hasServiceRequest() {

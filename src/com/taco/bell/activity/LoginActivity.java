@@ -4,33 +4,43 @@ import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import com.taco.bell.notification.Notification;
 import com.taco.bell.rest.RestMethod;
 import com.taco.bell.rest.RestMethodFactory;
 import com.taco.bell.util.Constants;
+import com.taco.bell.util.GCMUtilities;
 import com.taco.bell.util.Logger;
 import com.taco.bell.util.Serializer;
 import com.taco.bell.util.TimeFormatter;
 import com.taco.bell.R;
+import com.taco.bell.Server;
 import com.taco.bell.ServiceRequest;
 import com.taco.bell.User;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings.Secure;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.view.ViewDebug.HierarchyTraceType;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.EditText;
@@ -54,7 +64,9 @@ public class LoginActivity extends Activity implements OnTouchListener {
 	private boolean isScreenPressed = false;
 	private ServiceRequest request;
 	
-	private Timer T;
+	private IntentFilter gcmFilter;
+	private GcmBroadcastReceiver gcmReceiver;
+	private Timer T=new Timer();
 	private final Handler handler = new Handler();
 	private final Runnable checkPressed = new Runnable() {
 		@Override
@@ -99,17 +111,35 @@ public class LoginActivity extends Activity implements OnTouchListener {
 		});
 		
 		hideLogin();
+
+        if( Constants.GCM_ID == null )
+        	GCMUtilities.registerBackground(this);
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
 		hideLogin();
+
+		if( gcmFilter == null ) {
+	        gcmFilter = new IntentFilter();
+	        gcmFilter.addAction(Constants.GCM_MESSAGE_RX);
+        }
+		
+		if( gcmReceiver == null )
+			gcmReceiver =  new GcmBroadcastReceiver();
+
+        registerReceiver(gcmReceiver, gcmFilter);
+        
+        if( request != null )
+        	startAnimation();
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
+		
+		unregisterReceiver(gcmReceiver);
 	}
 
 	@Override
@@ -128,6 +158,8 @@ public class LoginActivity extends Activity implements OnTouchListener {
 		passwordInput.setVisibility(View.GONE);
 		staffLogin.setText(getString(R.string.staff_login));
 		staffLogin.setTextColor(Color.WHITE);
+		staffLogin.setVisibility(View.VISIBLE);
+		timerText.setVisibility(View.INVISIBLE);
 		infoText.setText(getString(R.string.instruction));
 		
 		isLoginReady = false;
@@ -149,15 +181,21 @@ public class LoginActivity extends Activity implements OnTouchListener {
 	private void login() {
 		RestMethod method = RestMethodFactory.Login(emailInput.getText().toString(), 
 							passwordInput.getText().toString());
-		new LoginAsyncTask().execute(method);		
+		new LoginTask().execute(method);		
 	}
 	
 	private void startAnimation() {
 		callWaiter.startAnimation(rotate);		
+		timerText.setVisibility(View.VISIBLE);
+		timerText.setText("00:00");
+		infoText.setText(getString(R.string.server_called,request.getServerName()));
+		callWaiter.setVisibility(View.VISIBLE);
+		staffLogin.setVisibility(View.INVISIBLE);
 	}
 	
 	private void stopAnimation() {
 		callWaiter.clearAnimation();
+		hideLogin();
 	}
 
 	@Override
@@ -174,7 +212,31 @@ public class LoginActivity extends Activity implements OnTouchListener {
 		return false;
 	}
 	
-	private class LoginAsyncTask extends AsyncTask<RestMethod, Void, String> {
+	private class GcmBroadcastReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			/* process GCM message */
+			String newMessage = intent.getExtras().getString(Constants.GCM_MESSAGE);
+			
+			Notification msg = (Notification) Serializer.deserialize(newMessage, Notification.class);
+			
+			Logger.d(tag,"GCM Broadcast: " + msg.getId());
+			
+			switch(msg.getId()) {
+			case Notification.Types.SERVICE_COMPLETED:
+				request = null;
+				if( T != null )
+					T.cancel();
+				stopAnimation();
+				
+				break;
+			default:
+				Logger.d(tag, "Unknown notification received: " + msg.getId());
+			}
+		}
+	}
+	
+	private class LoginTask extends AsyncTask<RestMethod, Void, String> {
 		String restCall = null;
 
 		@Override
@@ -196,12 +258,13 @@ public class LoginActivity extends Activity implements OnTouchListener {
 		@Override
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
+			Logger.d("LoginTask", result);
 
 			if( TextUtils.isEmpty(result) ) {
 				Logger.d(tag, "Login no response");
 				return;
 			}			
-			Constants.ME = (User) Serializer.deserialize(result, User.class);
+			Constants.ME = (Server) Serializer.deserialize(result, Server.class);
 			
 			if( restCall.equals(RestMethodFactory.LoginURL)
 					&& Constants.ME != null ) { // server login
@@ -213,8 +276,6 @@ public class LoginActivity extends Activity implements OnTouchListener {
 				
 			}
 		}
-		
-		
 	}
 	
 	private class CallServerTask extends AsyncTask<Void, Void, String> {
@@ -222,20 +283,20 @@ public class LoginActivity extends Activity implements OnTouchListener {
 		@Override
 		protected void onPreExecute() {
 			super.onPreExecute();
-			callWaiter.setVisibility(View.VISIBLE);
-			startAnimation();
 		}
 
 		@Override
 		protected void onPostExecute(String result) {
 			super.onPostExecute(result);
 			
-			 request = (ServiceRequest) Serializer.deserialize(result, ServiceRequest.class);
-			 timerText.setVisibility(View.VISIBLE);
+			Logger.d("CallServerTask", result);
 			
-			T=new Timer();
+			request = (ServiceRequest) Serializer.deserialize(result, ServiceRequest.class);
+			startAnimation();
+
+			
+			T = new Timer();
 			T.scheduleAtFixedRate(new TimerTask() {
-				        
 			        @Override
 			        public void run() {
 			            runOnUiThread(new Runnable()
@@ -245,14 +306,22 @@ public class LoginActivity extends Activity implements OnTouchListener {
 			                {
 			                	if( request == null ) return;
 			                	
-			    				long localTime = new LocalDateTime().now().toDateTime().getMillis();
+			    				long localTime = DateTime.now(DateTimeZone.UTC).getMillis();
+			    				
+			    				long diff = localTime - request.getRequestTime(); 
+			    				if( diff < Constants.SUBMIT_TIME ) {
+			    					timerText.setTextColor(getResources().getColor(R.color.SUBMITTED));
+			    				} else if( diff < Constants.WAITING_TIME ) {
+			    					timerText.setTextColor(getResources().getColor(R.color.WAITING));
+			    				} else {
+			    					timerText.setTextColor(getResources().getColor(R.color.LATE));
+			    				}
 			                	
 			                    timerText.setText(TimeFormatter.SimpleTimeFormatter.print(localTime - request.getRequestTime()));
 			                }
 			            });
 			        }
-			    }, 1000, 1000);
-			
+			    }, 1000, 1000);			
 		}
 
 		@Override

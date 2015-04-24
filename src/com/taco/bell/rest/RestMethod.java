@@ -23,7 +23,7 @@ public class RestMethod {
 	Types methodType;
 		
 	public static enum Types {
-		GET, POST, PUT, DELTE
+		GET, POST, PUT, DELETE
 	}
 	
 //	static {
@@ -47,7 +47,12 @@ public class RestMethod {
 		
     	HttpURLConnection conn = null;
     	
-    	URL url = new URL(uri);
+    	URL url = null;
+    	if( methodType == Types.GET ) {
+    		url = new URL(uri + "?" + params);
+    	} else {
+    		url = new URL(uri);    		
+    	}
     	
     	if( url.getProtocol().toLowerCase().equals("https") ) { // verify SSL cert
     		HttpsURLConnection https = (HttpsURLConnection) url.openConnection(); 
@@ -58,7 +63,7 @@ public class RestMethod {
     	}
 		
         switch(methodType) {
-		case DELTE:
+		case DELETE:
 			break;
 		case GET:
         	conn.setRequestMethod("GET");
