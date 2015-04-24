@@ -13,6 +13,7 @@ import com.taco.bell.util.Constants;
 import com.taco.bell.util.TimeFormatter;
 
 import android.content.Context;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -192,10 +193,10 @@ public class StationAdapter extends ArrayAdapter<Station> {
 				color = context.getResources().getString(R.string.late_color);
 			}
 			
-			holder.stationText.setText(context.getString(R.string.guest_called, color, request));
+			holder.stationText.setText(Html.fromHtml(context.getString(R.string.guest_called, color, request)));
 			holder.stationText.setVisibility(View.VISIBLE);
 		} else {
-			holder.stationText.setVisibility(View.GONE);
+			holder.stationText.setVisibility(View.INVISIBLE);
 			holder.icon.setImageResource(R.drawable.ic_server_submit);
 		}
 		

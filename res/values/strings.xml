@@ -14,7 +14,7 @@
     
     <string name="enter_credentials">Enter Credentials</string>
     
-    <string name="guest_called">Called <![CDATA[<font color='%1$s'>%2$s</font>]]> minutes ago.</string>
+    <string name="guest_called">Called <![CDATA[<font color=\'%1$s\'>%2$s</font>]]> minutes ago.</string>
         
     <string name="table_number">Table %1$d</string>
     

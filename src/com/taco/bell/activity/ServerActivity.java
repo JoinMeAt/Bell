@@ -46,18 +46,7 @@ public class ServerActivity extends Activity {
         public void run() {
         	if( !adapter.hasServiceRequests() ) return;
         	
-        	int firstView = listView.getFirstVisiblePosition();
-        	int lastView = listView.getLastVisiblePosition();
-        	
-			long localTime = DateTime.now(DateTimeZone.UTC).getMillis();
-			
-			// do any visible views need to be updated?
-			for( int i = firstView; i <= lastView; i++ ) {
-				if( adapter.viewShouldUpdate(i, localTime)) {
-					notifiyDataSetChanged();
-					break;
-				}
-			}		    				
+			notifiyDataSetChanged();
         }
     };
 

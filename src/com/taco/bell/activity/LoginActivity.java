@@ -40,7 +40,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
-import android.view.ViewDebug.HierarchyTraceType;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.EditText;
@@ -59,9 +58,11 @@ public class LoginActivity extends Activity implements OnTouchListener {
 	private EditText passwordInput;
 	
 	private Animation rotate;
+	private Animation shrink;
 	
 	private boolean isLoginReady = false;
 	private boolean isScreenPressed = false;
+	private boolean shrinkContinue = false;
 	private ServiceRequest request;
 	
 	private IntentFilter gcmFilter;
@@ -72,6 +73,7 @@ public class LoginActivity extends Activity implements OnTouchListener {
 		@Override
 		public void run() {
 			if( isScreenPressed ) {
+				shrinkContinue = false;
 	            new CallServerTask().execute();
 			}
 		}
@@ -97,6 +99,9 @@ public class LoginActivity extends Activity implements OnTouchListener {
 		                Secure.ANDROID_ID);
 
 		rotate = AnimationUtils.loadAnimation(LoginActivity.this, R.anim.rotate);
+		rotate.setFillAfter(true);
+		
+		shrink = AnimationUtils.loadAnimation(LoginActivity.this, R.anim.shrink);
 		rotate.setFillAfter(true);
 		
 		waiterIcon.setOnTouchListener(this);
@@ -162,6 +167,9 @@ public class LoginActivity extends Activity implements OnTouchListener {
 		timerText.setVisibility(View.INVISIBLE);
 		infoText.setText(getString(R.string.instruction));
 		
+//		waiterIcon.clearAnimation();
+//		waiterIcon.getLayoutParams().height = 150;
+//		waiterIcon.getLayoutParams().width = 150;
 		isLoginReady = false;
 	}
 	
@@ -204,10 +212,16 @@ public class LoginActivity extends Activity implements OnTouchListener {
 	    if (action == MotionEvent.ACTION_DOWN) {
 	    	handler.postDelayed(checkPressed, 2000);
 	        isScreenPressed = true;
+//	        waiterIcon.startAnimation(shrink);
+//	        shrinkContinue = true;
 	    }
 	    else if (action == MotionEvent.ACTION_UP) {
 	    	handler.removeCallbacks(checkPressed);
 	    	isScreenPressed = false;
+//	    	if( shrinkContinue ) {
+//	    		waiterIcon.clearAnimation();
+//	    		shrinkContinue = false;
+//	    	}
 	    }
 		return false;
 	}
